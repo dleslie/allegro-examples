@@ -113,8 +113,6 @@
 			  (al:flip-display)
 			  (al:rest 0.001)
 
-			  (display (format "~S ~S\n" dir ratio))
-
 			  (loop))))))
   (loop))
 
