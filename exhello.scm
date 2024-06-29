@@ -1,6 +1,6 @@
 ;; A simple Hello World application
 (require-library allegro)
-(use (prefix allegro al:))
+(import (prefix allegro al:))
 
 ;; Print an error and quit the program
 (define (error-quit x)
