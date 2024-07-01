@@ -1,6 +1,6 @@
-(use (prefix allegro al:)
-     (prefix opengl-glew gl:)
-     (prefix gl-utils gl:))
+(import (prefix allegro al:)
+        allegro-opengl
+        (prefix allegro-c-util al:))
 
 (define (abort x)
   (display x)
@@ -18,7 +18,11 @@
 (if (not main-display)
     (abort "Error creating display"))
 
-(gl:init)
+
+(when (not (or (al:opengl-extension-exists? "GL_EXT_FRAMEBUFFER_OBJECT")
+               (al:opengl-extension-exists? "GL_ARB_FRAGMENT_SHADER")))
+  (abort "Fragment shaders are not supported."))
+
 
 (define mysha (al:load-bitmap "data/mysha.pcx"))
 (if (not mysha)
@@ -30,31 +34,37 @@
 	(not (al:opengl-texture buffer)))
     (abort "Could not create render buffer"))
 
-(define tinter-shader-source "
-uniform sampler2D backBuffer;
-uniform float r;
-uniform float g;
-uniform float b;
-uniform float ratio;
-void main() {
-  vec4 color;
-  float avg, dr, dg, db;
-  color = texture2D(backBuffer, gl_TexCoord[0].st);
-  avg = (color.r + color.g + color.b) / 3.0;
-  dr = avg * r;
-  dg = avg * g;
-  db = avg * b;
-  color.r = color.r - (ratio * (color.r - dr));
-  color.g = color.g - (ratio * (color.g - dg));
-  color.b = color.b - (ratio * (color.b - db));
-  gl_FragColor = color;
-}
-")
-(define tinter-shader (gl:make-shader gl:+fragment-shader+ tinter-shader-source))
-(define shader-program (make-parameter (gl:make-program `(,tinter-shader))))
-  
-(gl:uniform1i (gl:get-uniform-location (shader-program) "backBuffer")
-	      (al:opengl-texture buffer))
+(define tinter-shader-source
+  (list "uniform sampler2D backBuffer;"
+        "uniform float r;"
+        "uniform float g;"
+        "uniform float b;"
+        "uniform float ratio;"
+        "void main() {"
+        "	vec4 color;"
+        "	float avg, dr, dg, db;"
+        "	color = texture2D(backBuffer, gl_TexCoord[0].st);"
+        "	avg = (color.r + color.g + color.b) / 3.0;"
+        "	dr = avg * r;"
+        "	dg = avg * g;"
+        "	db = avg * b;"
+        "	color.r = color.r - (ratio * (color.r - dr));"
+        "	color.g = color.g - (ratio * (color.g - dg));"
+        "	color.b = color.b - (ratio * (color.b - db));"
+        "	gl_FragColor = color;"))
+
+(define tinter-shader-cptr (al:make-c-string-list tinter-shader-source))
+
+(define tinter-shader (gl:create-shader-object-arb gl:fragment-shader-arb))
+(gl:shader-source-arb tinter-shader (length tinter-shader-source) tinter-shader-cptr #f)
+(gl:compile-shader-arb tinter-shader)
+
+(define tinter (gl:create-program-object-arb))
+(gl:attach-object-arb tinter tinter-shader)
+(gl:link-program-arb tinter)
+
+(define loc (gl:get-uniform-location-arb tinter "backBuffer"))
+(gl:uniform1i-arb loc (al:opengl-texture buffer))
 
 (define r 0.5)
 (define g 0.5)
@@ -69,30 +79,27 @@ void main() {
   (define diff (- now start))
   (set! start now)
   (set! ratio (+ ratio (* diff 0.5 dir)))
-	      
+
   (if (and (< dir 0) (< ratio 0))
       (begin
-	(set! ratio 0)
-	(set! dir (- 0 dir)))
+	      (set! ratio 0)
+	      (set! dir (- 0 dir)))
       (if (and (> dir 0) (> ratio 1))
-	  (begin
-	    (set! ratio 1)
-	    (set! dir (- 0 dir)))))
+	        (begin
+	          (set! ratio 1)
+	          (set! dir (- 0 dir)))))
 
-  ;; (gl:clear (bitwise-ior gl:+color-buffer-bit+ gl:+depth-buffer-bit+))
-  
   (al:target-bitmap-set! buffer)
 
-  (gl:use-program (shader-program))
-  (gl:uniform1f (gl:get-uniform-location (shader-program) "r") r)
-  (gl:uniform1f (gl:get-uniform-location (shader-program) "g") g)
-  (gl:uniform1f (gl:get-uniform-location (shader-program) "b") b)
-  (gl:uniform1f (gl:get-uniform-location (shader-program) "ratio") ratio)
+  (gl:use-program tinter)
+  (gl:uniform1f (gl:get-uniform-location tinter "ratio") ratio)
+  (gl:uniform1f (gl:get-uniform-location tinter "r") r)
+  (gl:uniform1f (gl:get-uniform-location tinter "g") g)
+  (gl:uniform1f (gl:get-uniform-location tinter "b") b)
   (al:bitmap-draw mysha 0 0 0)
   (gl:use-program 0)
 
   (al:target-backbuffer-set! main-display)
-
   (al:bitmap-draw buffer 0 0 0)
   (al:flip-display)
   (al:rest 0.001))
