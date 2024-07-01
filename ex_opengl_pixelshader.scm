@@ -37,7 +37,7 @@ void main() {
   (when (not (al:init))
     (abort "Could not init Allegro"))
 
-  (al:init-this '(keyboard image opengl))
+  (al:init-this '(keyboard image))
 
   (al:new-display-flags-set! (al:display-flag->int 'opengl))
   (define main-display (al:make-display 320 200))
@@ -73,7 +73,7 @@ void main() {
 
   (define r 0.5)
   (define g 0.5)
-  (define b 1)
+  (define b 0.5)
   (define ratio 0)
   (define dir 1)
   (define start (al:current-time))
@@ -132,7 +132,6 @@ void main() {
      (quit 0)))
 
   (gl:detach-object-arb tinter tinter-shader)
-  (gl:delete-object-arb tinter-shader)
-  (al:uninstall-everything))
+  (gl:delete-object-arb tinter-shader))
 
 (main)
