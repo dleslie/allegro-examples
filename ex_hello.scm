@@ -14,9 +14,9 @@
 (define (draw-hello-scene scene)
   (al:clear-to-color (scene-bgcolor scene))
   (al:font-draw-string (scene-font scene) (scene-fgcolor scene)
-		       (/ (scene-width scene) 2)
-		       (/ (scene-height scene) 2)
-		       'center "Hello World")
+		                   (/ (scene-width scene) 2)
+		                   (/ (scene-height scene) 2)
+		                   'center "Hello World")
   (al:flip-display))
 
 ;; Main function
@@ -45,24 +45,24 @@
 
   ;; Some draw settings to use for the hello world scene
   (define hello-scene (make-scene 640 480 hello-font
-				  (al:make-color-name "black")
-				  (al:make-color-name "white")))
+				                          (al:make-color-name "black")
+				                          (al:make-color-name "white")))
 
   ;; Start our main event loop via call/cc so we can exit cleanly
   (call/cc (lambda (quit)
-      ;; A record to store event data in
-      (let ([event (al:make-event)]) 
-	(let main-loop ()
-	  ;; Draw the scene on every loop
-	  (draw-hello-scene hello-scene)
+             ;; A record to store event data in
+             (let ([event (al:make-event)])
+	             (let main-loop ()
+	               ;; Draw the scene on every loop
+	               (draw-hello-scene hello-scene)
 
-	  ;; Grab and handle events
-	  (if (al:event-queue-timed-wait! event-queue event 0.06)
-	      (case (al:event-type event)
-		((display-close) (quit 0))))
+	               ;; Grab and handle events
+	               (if (al:event-queue-timed-wait! event-queue event 0.06)
+	                   (case (al:event-type event)
+		                   ((display-close) (quit 0))))
 
-	  ;; Repeat
-	  (main-loop))))))
+	               ;; Repeat
+	               (main-loop))))))
 
 ;; Startup
 (main)
