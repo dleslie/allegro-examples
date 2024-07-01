@@ -1,6 +1,5 @@
 (import (prefix allegro al:)
-        allegro-opengl
-        (prefix allegro-c-util al:))
+        allegro-opengl)
 
 (define tinter-shader-source
   "
