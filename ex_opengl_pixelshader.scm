@@ -19,8 +19,8 @@
     (abort "Error creating display"))
 
 
-(when (not (or (al:opengl-extension-exists? "GL_EXT_FRAMEBUFFER_OBJECT")
-               (al:opengl-extension-exists? "GL_ARB_FRAGMENT_SHADER")))
+(when (not (or (al:opengl-extension-exists? "GL_EXT_framebuffer_object")
+               (al:opengl-extension-exists? "GL_ARB_fragment_shader")))
   (abort "Fragment shaders are not supported."))
 
 
