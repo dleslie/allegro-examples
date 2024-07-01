@@ -71,9 +71,9 @@ void main() {
   (let ((loc (gl:get-uniform-location-arb tinter "backBuffer")))
     (gl:uniform1i-arb loc (al:opengl-texture buffer)))
 
-  (define r 0.5)
-  (define g 0.5)
-  (define b 0.5)
+  (define r 0)
+  (define g 0)
+  (define b 0)
   (define ratio 0)
   (define dir 1)
   (define start (al:current-time))
